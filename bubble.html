@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
+        #scene {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+<div id="scene">
+
+</div>
+</body>
+<script>
+    class Bubble {
+        constructor(scene) {
+            this.num = Math.floor(Math.random() * 50);
+            this.blueBubble = [];
+            this.redBubble = null;
+            this.scene = scene;
+            this.width = window.innerWidth;
+            this.height = window.innerHeight;
+        }
+
+        begin() {
+            for (let i = 0; i < this.num; i++) {
+                this.createBlueBubble();
+            }
+            this.createRedBubble();
+            this.mouseMove();
+        }
+
+        createBlueBubble() {
+            let div = document.createElement("div");
+            let rLeft, rTop;
+            do {
+                rLeft = Math.random() * (this.width - 200) + 100;
+                rTop = Math.random() * (this.height - 200) + 100;
+            } while (this.checkPos(rLeft, rTop));
+            let rWidth = Math.random() * 20 + 80;
+            div.style.cssText = `width:${rWidth}px;height:${rWidth}px;top:${rTop}px;left:${rLeft}px;position:absolute;background:url("./蓝泡.png");background-size:cover;border-radius:50%;transition:all 1s cubic-bezier(0.000, 0.890, 0.340, 1.030);`;
+            this.scene.appendChild(div);
+            this.blueBubble.push({
+                ele: div,
+                left: rLeft,
+                top: rTop,
+                size: rWidth,
+                pos: {x: rLeft + rWidth / 2, y: rTop + rWidth / 2},
+            });
+
+        }
+
+        checkPos(l, t) {
+            return this.blueBubble.some(function (ele, index) {
+                let leftBand = ele.left - ele.size;
+                let rightBand = ele.left + ele.size;
+                let topBand = ele.top - ele.size;
+                let bottomBand = ele.top + ele.size;
+                if (l > leftBand && l < rightBand && t > topBand && t < bottomBand) {
+                    return true;
+                }
+            })
+        }
+
+        createRedBubble() {
+            let div = document.createElement("div");
+            div.style.cssText = `width:100px;height:100px;background:url("./红泡.png");background-size:cover;position:absolute;left:0;top:0;border-radius:50%;`;
+            this.scene.appendChild(div);
+            this.redBubble = div;
+        }
+
+        mouseMove() {
+            this.scene.onmousemove = function (e) {
+                let [cx, cy] = [e.clientX, e.clientY];
+                if (cx - 50 < 0) {
+                    cx = 50;
+                }
+                if (cy - 50 < 0) {
+                    cy = 50;
+                }
+                if (cx + 50 > this.width) {
+                    cx = this.width - 50;
+                }
+                if (cy + 50 > this.height) {
+                    cy = this.height - 50;
+                }
+                this.redBubble.style.left = cx - 50 + "px";
+                this.redBubble.style.top = cy - 50 + "px";
+                this.blueBubble.forEach(function (ele, index) {
+                    let distance = Math.sqrt(Math.pow(cx - ele.pos.x, 2) + Math.pow(cy - ele.pos.y, 2));
+                    if (distance < 50 + ele.size / 2) {
+                        let newLeft = ele.left + (ele.left - cx);
+                        let newTop = ele.top + (ele.top - cy);
+                        ele.left = newLeft;
+                        ele.top = newTop;
+                        ele.pos.x = ele.left + ele.size / 2;
+                        ele.pos.y = ele.top + ele.size / 2;
+                        ele.ele.style.left = `${newLeft}px`;
+                        ele.ele.style.top = `${newTop}px`;
+                    }
+                })
+            }.bind(this);
+        }
+    }
+    let scene = document.querySelector("#scene");
+    let obj = new Bubble(scene);
+    obj.begin();
+</script>
+</html>
